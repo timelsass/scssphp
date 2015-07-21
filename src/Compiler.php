@@ -20,6 +20,7 @@ use Leafo\ScssPhp\Formatter\OutputBlock;
 use Leafo\ScssPhp\Node;
 use Leafo\ScssPhp\Type;
 use Leafo\ScssPhp\Parser;
+use Leafo\ScssPhp\SourceMap;
 use Leafo\ScssPhp\Util;
 
 /**
@@ -119,6 +120,7 @@ class Compiler
 
     protected $encoding = null;
     protected $lineNumberStyle = null;
+    protected $sourceMap = SourceMap::NONE;
 
     protected $formatter = 'Leafo\ScssPhp\Formatter\Nested';
 
@@ -3122,6 +3124,18 @@ class Compiler
     public function setLineNumberStyle($lineNumberStyle)
     {
         $this->lineNumberStyle = $lineNumberStyle;
+    }
+
+    /**
+     * Set source map
+     *
+     * @api
+     *
+     * @param string $sourceMap
+     */
+    public function setSourceMap($sourceMap)
+    {
+        $this->sourceMap = $sourceMap;
     }
 
     /**
