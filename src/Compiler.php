@@ -3655,7 +3655,7 @@ class Compiler
             return false;
         }
 
-        @list($sorted, $kwargs) = $this->sortArgs($prototype, $args);
+        list($sorted, $kwargs) = array_pad($this->sortArgs($prototype, $args), 2, null);
 
         if ($name !== 'if' && $name !== 'call') {
             foreach ($sorted as &$val) {
