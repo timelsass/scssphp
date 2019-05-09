@@ -12,7 +12,6 @@
 namespace Leafo\ScssPhp;
 
 use Leafo\ScssPhp\Formatter\OutputBlock;
-use Leafo\ScssPhp\SourceMap\SourceMapGenerator;
 
 /**
  * Base formatter
@@ -75,11 +74,6 @@ abstract class Formatter
      * @var integer
      */
     protected $currentColumn;
-
-    /**
-     * @var \Leafo\ScssPhp\SourceMap\SourceMapGenerator
-     */
-    protected $sourceMapGenerator;
 
     /**
      * Initialize formatter
@@ -223,20 +217,11 @@ abstract class Formatter
      * @api
      *
      * @param \Leafo\ScssPhp\Formatter\OutputBlock             $block              An abstract syntax tree
-     * @param \Leafo\ScssPhp\SourceMap\SourceMapGenerator|null $sourceMapGenerator Optional source map generator
      *
      * @return string
      */
-    public function format(OutputBlock $block, SourceMapGenerator $sourceMapGenerator = null)
+    public function format(OutputBlock $block)
     {
-        $this->sourceMapGenerator = null;
-
-        if ($sourceMapGenerator) {
-            $this->currentLine = 1;
-            $this->currentColumn = 0;
-            $this->sourceMapGenerator = $sourceMapGenerator;
-        }
-
         ob_start();
 
         $this->block($block);
@@ -251,25 +236,6 @@ abstract class Formatter
      */
     protected function write($str)
     {
-        if ($this->sourceMapGenerator) {
-            $this->sourceMapGenerator->addMapping(
-                $this->currentLine,
-                $this->currentColumn,
-                $this->currentBlock->sourceLine,
-                //columns from parser are off by one
-                $this->currentBlock->sourceColumn > 0 ? $this->currentBlock->sourceColumn - 1 : 0,
-                $this->currentBlock->sourceName
-            );
-
-            $lines = explode("\n", $str);
-            $lineCount = count($lines);
-            $this->currentLine += $lineCount-1;
-
-            $lastLine = array_pop($lines);
-
-            $this->currentColumn = ($lineCount === 1 ? $this->currentColumn : 0) + strlen($lastLine);
-        }
-
         echo $str;
     }
 }

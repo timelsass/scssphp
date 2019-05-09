@@ -18,7 +18,6 @@ use Leafo\ScssPhp\Compiler\Environment;
 use Leafo\ScssPhp\Exception\CompilerException;
 use Leafo\ScssPhp\Formatter\OutputBlock;
 use Leafo\ScssPhp\Node;
-use Leafo\ScssPhp\SourceMap\SourceMapGenerator;
 use Leafo\ScssPhp\Type;
 use Leafo\ScssPhp\Parser;
 use Leafo\ScssPhp\Util;
@@ -125,9 +124,6 @@ class Compiler
     protected $encoding = null;
     protected $lineNumberStyle = null;
 
-    protected $sourceMap = self::SOURCE_MAP_NONE;
-    protected $sourceMapOptions = [];
-
     /**
      * @var string|\Leafo\ScssPhp\Formatter
      */
@@ -153,7 +149,6 @@ class Compiler
     protected $sourceIndex;
     protected $sourceLine;
     protected $sourceColumn;
-    protected $stderr;
     protected $shouldEvaluate;
     protected $ignoreErrors;
 
@@ -191,7 +186,6 @@ class Compiler
         $this->storeEnv       = null;
         $this->charsetSeen    = null;
         $this->shouldEvaluate = null;
-        $this->stderr         = fopen('php://stderr', 'w');
 
         $this->parser = $this->parserFactory($path);
         $tree = $this->parser->parse($code);
@@ -205,35 +199,7 @@ class Compiler
         $this->compileRoot($tree);
         $this->popEnv();
 
-        $sourceMapGenerator = null;
-
-        if ($this->sourceMap) {
-            if (is_object($this->sourceMap) && $this->sourceMap instanceof SourceMapGenerator) {
-                $sourceMapGenerator = $this->sourceMap;
-                $this->sourceMap = self::SOURCE_MAP_FILE;
-            } elseif ($this->sourceMap !== self::SOURCE_MAP_NONE) {
-                $sourceMapGenerator = new SourceMapGenerator($this->sourceMapOptions);
-            }
-        }
-
-        $out = $this->formatter->format($this->scope, $sourceMapGenerator);
-
-        if (! empty($out) && $this->sourceMap && $this->sourceMap !== self::SOURCE_MAP_NONE) {
-            $sourceMap    = $sourceMapGenerator->generateJson();
-            $sourceMapUrl = null;
-
-            switch ($this->sourceMap) {
-                case self::SOURCE_MAP_INLINE:
-                    $sourceMapUrl = sprintf('data:application/json,%s', Util::encodeURIComponent($sourceMap));
-                    break;
-
-                case self::SOURCE_MAP_FILE:
-                    $sourceMapUrl = $sourceMapGenerator->saveMap($sourceMap);
-                    break;
-            }
-
-            $out .= sprintf('/*# sourceMappingURL=%s */', $sourceMapUrl);
-        }
+        $out = $this->formatter->format($this->scope);
 
         return $out;
     }
@@ -2193,7 +2159,7 @@ class Compiler
                 $fname = $this->sourceNames[$this->sourceIndex];
                 $line = $this->sourceLine;
                 $value = $this->compileValue($this->reduce($value, true));
-                fwrite($this->stderr, "File $fname on line $line DEBUG: $value\n");
+                $this->throwError("File $fname on line $line DEBUG: $value\n");
                 break;
 
             case Type::T_WARN:
@@ -2202,7 +2168,7 @@ class Compiler
                 $fname = $this->sourceNames[$this->sourceIndex];
                 $line = $this->sourceLine;
                 $value = $this->compileValue($this->reduce($value, true));
-                fwrite($this->stderr, "File $fname on line $line WARN: $value\n");
+                $this->throwError("File $fname on line $line WARN: $value\n");
                 break;
 
             case Type::T_ERROR:
@@ -3707,30 +3673,6 @@ class Compiler
     public function setLineNumberStyle($lineNumberStyle)
     {
         $this->lineNumberStyle = $lineNumberStyle;
-    }
-
-    /**
-     * Enable/disable source maps
-     *
-     * @api
-     *
-     * @param integer $sourceMap
-     */
-    public function setSourceMap($sourceMap)
-    {
-        $this->sourceMap = $sourceMap;
-    }
-
-    /**
-     * Set source map options
-     *
-     * @api
-     *
-     * @param array $sourceMapOptions
-     */
-    public function setSourceMapOptions($sourceMapOptions)
-    {
-        $this->sourceMapOptions = $sourceMapOptions;
     }
 
     /**
