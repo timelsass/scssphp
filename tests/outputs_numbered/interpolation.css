@@ -71,3 +71,25 @@ foo, x, y {
 /* line 97, inputs/interpolation.scss */
 div {
   prop: a, b; }
+/* line 101, inputs/interpolation.scss */
+/* line 102, inputs/interpolation.scss */
+
+a.badge {
+  text-decoration: none; }
+/* line 119, inputs/interpolation.scss */
+.btn-primary {
+  background: yellow; }
+/* line 110, inputs/interpolation.scss */
+.btn-primary:not(.disabled) {
+  border-color: red; }
+/* line 113, inputs/interpolation.scss */
+.btn-primary:not(.disabled):focus {
+  border-width: 3px; }
+/* line 133, inputs/interpolation.scss */
+/* line 124, inputs/interpolation.scss */
+
+/* line 125, inputs/interpolation.scss */
+
+/* line 126, inputs/interpolation.scss */
+  .pagination .page-item:first-child .page-link {
+    border-radius: 5px; }
